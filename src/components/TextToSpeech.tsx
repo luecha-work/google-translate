@@ -1,26 +1,26 @@
-import { toggleAnimation } from "@/store/slices/animationSlice";
+import { useAppSelector } from "@/store/hooks";
+import {
+  getTranscribedText,
+  toggleAnimation,
+} from "@/store/slices/googleCloudSpeakingSlice";
 import { NextPage } from "next";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
+import SpeakingAnimationLottie from "./SpeakingAnimationLottie";
 
-interface TextToSpeechProps {
-  textToSpeech: string;
-}
-
-const TextToSpeech: NextPage<TextToSpeechProps> = ({ textToSpeech }) => {
+const TextToSpeech: NextPage = () => {
   const dispatch = useDispatch();
+  const [audioUrl, setAudioUrl] = useState<string>("");
 
-  const getGoogleApiKey = (): string => {
-    return "AIzaSyBMi954FygoAdohOW60DWU9oZIlTKsyhEE";
-  };
+  const transcribedText = useAppSelector(getTranscribedText);
 
   const synthesizeTextToSpeech = async () => {
     try {
-      const apiKey = getGoogleApiKey();
-      if (!apiKey || !textToSpeech) return;
+      const apiKey = "AIzaSyBMi954FygoAdohOW60DWU9oZIlTKsyhEE";
+      if (!apiKey || !transcribedText) return;
 
       const body = {
-        input: { text: textToSpeech },
+        input: { text: transcribedText },
         voice: {
           languageCode: "th-TH",
           ssmlGender: "NEUTRAL",
@@ -45,7 +45,7 @@ const TextToSpeech: NextPage<TextToSpeechProps> = ({ textToSpeech }) => {
         const audioBlob = base64StringToBlob(audioContent, "audio/mp3");
         const audioUrl = URL.createObjectURL(audioBlob);
 
-        playAudio(audioUrl);
+        setAudioUrl(audioUrl);
       }
     } catch (error) {
       console.error("Text-to-speech error:", error);
@@ -73,31 +73,27 @@ const TextToSpeech: NextPage<TextToSpeechProps> = ({ textToSpeech }) => {
     return blob;
   };
 
-  const playAudio = (url: string) => {
-    dispatch(toggleAnimation(true));
-    const audio = new Audio(url);
-    audio.play().catch((error) => {
-      console.error("Audio playback error:", error);
-    });
-    audio.onended = () => {
-      dispatch(toggleAnimation(false));
-    };
+  const playAudio = () => {
+    if (transcribedText !== "") {
+      dispatch(toggleAnimation(true));
+
+      const audio = new Audio(audioUrl);
+
+      audio.play().catch((error) => {
+        console.error("Audio playback error:", error);
+      });
+
+      audio.onended = () => {
+        dispatch(toggleAnimation(false));
+      };
+    }
   };
 
   useEffect(() => {
     synthesizeTextToSpeech();
-  }, [textToSpeech]);
+  }, [transcribedText]);
 
-  return (
-    <>
-      {/* <h2>Cloud Text-to-Speech Example</h2>
-      <br />
-      <div>
-        <button onClick={() => playAudio(audioSrc || "")}></button>
-      </div>
-      <br /> */}
-    </>
-  );
+  return <SpeakingAnimationLottie handlerPlayAudio={playAudio} />;
 };
 
 export default TextToSpeech;

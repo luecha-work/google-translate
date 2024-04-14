@@ -1,9 +1,9 @@
 import { configureStore } from "@reduxjs/toolkit";
-import animationReducer from "./slices/animationSlice";
+import googleCloudSpeakingReducer from "./slices/googleCloudSpeakingSlice";
 
 const store = configureStore({
   reducer: {
-    animation: animationReducer,
+    googleCloudSpeaking: googleCloudSpeakingReducer,
   },
 });
 

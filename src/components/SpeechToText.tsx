@@ -1,18 +1,19 @@
-import { useState } from "react";
-import Recorder from "./Recorder";
-import TextToSpeech from "./TextToSpeech";
+import { useAppSelector } from "@/store/hooks";
+import {
+  getTranscribedText,
+  setTranscribedText,
+} from "@/store/slices/googleCloudSpeakingSlice";
+import { useDispatch } from "react-redux";
+import VoiceMicrophoneRecording from "./VoiceMicrophoneRecording";
 
 const SpeechToText = () => {
-  const [transcribedText, setTranscribedText] = useState<string | null>("");
-
-  const getGoogleApiKey = (): string => {
-    return "AIzaSyBMi954FygoAdohOW60DWU9oZIlTKsyhEE";
-  };
+  const dispatch = useDispatch();
+  const transcribedText = useAppSelector(getTranscribedText);
 
   const trnascribeToGoogle = async (audioBlob: Blob) => {
     try {
       const content = await toBase64(audioBlob);
-      const apiKey = getGoogleApiKey();
+      const apiKey = "AIzaSyBMi954FygoAdohOW60DWU9oZIlTKsyhEE";
 
       if (!apiKey || !content) return null;
 
@@ -71,30 +72,23 @@ const SpeechToText = () => {
     try {
       const transcribedText = await trnascribeToGoogle(audioBlob);
       if (transcribedText) {
-        setTranscribedText(transcribedText);
+        dispatch(setTranscribedText(transcribedText));
       }
     } catch (error) {
       console.error("Error transcribing audio:", error);
-      setTranscribedText(null);
+      dispatch(setTranscribedText(""));
     }
   };
 
   return (
     <>
-      <h2>Speech-to-Text And Display Example</h2>
-      <br />
-      <Recorder onRecordingStop={handleTranscribeClick} />
-      <br />
-      <>
-        <h3>Transcribed Text: </h3>
-        <p style={{ color: "red" }}> {transcribedText}</p>
-      </>
-      <br />
-      {transcribedText ? (
-        <TextToSpeech textToSpeech={transcribedText} />
-      ) : (
-        <></>
-      )}
+      <div className="flex md:inline-flex mb-5 mt-2">
+        <h3 className="flex-1">Transcribed Text: </h3>
+        <p className="flex-2" style={{ color: "red" }}>
+          {transcribedText}
+        </p>
+      </div>
+      <VoiceMicrophoneRecording onRecordingStop={handleTranscribeClick} />
     </>
   );
 };
