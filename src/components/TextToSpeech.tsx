@@ -1,47 +1,68 @@
+import { GoogleCloudLanguageCode } from "@/contract/GoogleCloudLanguage";
 import { useAppSelector } from "@/store/hooks";
 import {
   getTranscribedText,
   toggleAnimation,
 } from "@/store/slices/googleCloudSpeakingSlice";
+import axios, { AxiosResponse } from "axios";
 import { NextPage } from "next";
 import { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import SpeakingAnimationLottie from "./SpeakingAnimationLottie";
 
-const TextToSpeech: NextPage = () => {
+interface TextToSpeechProps {
+  googleLanguageCode?: (typeof GoogleCloudLanguageCode)[keyof typeof GoogleCloudLanguageCode];
+}
+
+const TextToSpeech: NextPage<TextToSpeechProps> = ({ googleLanguageCode }) => {
   const dispatch = useDispatch();
   const [audioUrl, setAudioUrl] = useState<string>("");
 
   const transcribedText = useAppSelector(getTranscribedText);
 
   const synthesizeTextToSpeech = async () => {
+    googleLanguageCode = googleLanguageCode || GoogleCloudLanguageCode.Thailand;
+
     try {
-      const apiKey = "AIzaSyBMi954FygoAdohOW60DWU9oZIlTKsyhEE";
+      const apiKey: string = "AIzaSyBMi954FygoAdohOW60DWU9oZIlTKsyhEE";
+      const googletextToSpeechUrl: string = `https://texttospeech.googleapis.com/v1/text:synthesize?key=${apiKey}`;
+
       if (!apiKey || !transcribedText) return;
 
+      // Standard-A: เสียงมาตรฐาน
+      // Wavenet-A: เสียงที่สร้างด้วยเทคโนโลยี Wavenet
+      // modal support thailand leng is 1.th-TH-Standard-A 2.th-TH-Neural2-C
+      // MALE: สำหรับเสียงผู้ชาย
+      // FEMALE: สำหรับเสียงผู้หญิง
+      // NEUTRAL: เสียงที่ไม่มีเพศเฉพาะ
+      const ssmlTranscribed = `<speak>${transcribedText}</speak>`;
+
       const body = {
-        input: { text: transcribedText },
-        voice: {
-          languageCode: "th-TH",
-          ssmlGender: "NEUTRAL",
+        input: {
+          ssml: ssmlTranscribed,
         },
-        audioConfig: { audioEncoding: "MP3" },
+        voice: {
+          languageCode: googleLanguageCode,
+          name: `${googleLanguageCode}-Standard-A`,
+          ssmlGender: "MALE",
+        },
+        audioConfig: {
+          audioEncoding: "MP3",
+        },
       };
 
-      const response = await fetch(
-        `https://texttospeech.googleapis.com/v1/text:synthesize?key=${apiKey}`,
-        {
-          method: "POST",
+      const response = await axios
+        .post(googletextToSpeechUrl, JSON.stringify(body), {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(body),
-        }
-      );
-      const responseData = await response.json();
-      const audioContent = responseData.audioContent;
+        })
+        .then((response: AxiosResponse) => {
+          return response.data;
+        });
+
+      const audioContent = response.audioContent;
       if (audioContent) {
-        console.log(`audioContent is true`);
         const audioBlob = base64StringToBlob(audioContent, "audio/mp3");
         const audioUrl = URL.createObjectURL(audioBlob);
 

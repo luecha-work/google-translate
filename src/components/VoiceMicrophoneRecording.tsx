@@ -1,5 +1,5 @@
-import MicIcon from "@mui/icons-material/Mic";
-import StopCircleSharpIcon from "@mui/icons-material/StopCircleSharp";
+import { MicIcon } from "@mui/icons-material/Mic";
+import { StopCircleSharpIcon } from "@mui/icons-material/StopCircleSharp";
 import { useEffect, useRef, useState } from "react";
 
 interface RecorderProps {

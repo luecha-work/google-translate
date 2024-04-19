@@ -3,6 +3,7 @@ import {
   getTranscribedText,
   setTranscribedText,
 } from "@/store/slices/googleCloudSpeakingSlice";
+import axios, { AxiosResponse } from "axios";
 import { useDispatch } from "react-redux";
 import VoiceMicrophoneRecording from "./VoiceMicrophoneRecording";
 
@@ -12,8 +13,9 @@ const SpeechToText = () => {
 
   const trnascribeToGoogle = async (audioBlob: Blob) => {
     try {
+      const apiKey: string = "AIzaSyBMi954FygoAdohOW60DWU9oZIlTKsyhEE";
+      const googletextToSpeechUrl: string = `https://speech.googleapis.com/v1/speech:recognize?key=${apiKey}`;
       const content = await toBase64(audioBlob);
-      const apiKey = "AIzaSyBMi954FygoAdohOW60DWU9oZIlTKsyhEE";
 
       if (!apiKey || !content) return null;
 
@@ -22,25 +24,27 @@ const SpeechToText = () => {
           content: content,
         },
         config: {
-          languageCode: "th-TH",
-          alternativeLanguageCodes: ["en-US", "en-GB", "de-DE"],
+          languageCode: "th-TH", // ภาษาหลัก
+          alternativeLanguageCodes: ["en-US", "cmn-CN"], // ภาษาที่เป็นทางเลือก
+          maxAlternatives: 1, // จำนวนของคำแทนที่ API จะคืนให้ (ในที่นี้เลือก 1)
+          profanityFilter: false, // ตัวกรองคำหยาบ (ไม่ใช้งานในที่นี้)
+          enableAutomaticPunctuation: true, // เปิดใช้การตัดวรรคแบบอัตโนมัติ
+          enableWordTimeOffsets: true, // เปิดใช้ค่าเวลาของคำพูด
+          enableWordConfidence: true, // เปิดใช้ความมั่นใจในคำพูด
         },
       };
 
-      const response = await fetch(
-        `https://speech.googleapis.com/v1/speech:recognize?key=${apiKey}`,
-        {
-          method: "POST",
+      const response = await axios
+        .post(googletextToSpeechUrl, JSON.stringify(body), {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(body),
-        }
-      );
+        })
+        .then((response: AxiosResponse) => {
+          return response.data;
+        });
 
-      const jsonResponse = await response.json();
-      const transcribedText =
-        jsonResponse.results[0]?.alternatives[0]?.transcript;
+      const transcribedText = response.results[0]?.alternatives[0]?.transcript;
 
       if (transcribedText) {
         return transcribedText;
