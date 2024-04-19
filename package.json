@@ -20,15 +20,13 @@
     "@types/react-redux": "^7.1.33",
     "axios": "^1.6.8",
     "fs": "^0.0.1-security",
-    "net": "^1.0.2",
     "next": "14.1.4",
     "next-redux-wrapper": "^8.1.0",
     "react": "^18",
     "react-dom": "^18",
     "react-lottie": "^1.2.4",
     "react-redux": "^9.1.0",
-    "styled-components": "^6.1.8",
-    "util": "^0.12.5"
+    "styled-components": "^6.1.8"
   },
   "devDependencies": {
     "@types/node": "^20",

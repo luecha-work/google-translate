@@ -1,5 +1,4 @@
-import SpeechToText from "@/components/SpeechToText";
-import TextToSpeech from "@/components/TextToSpeech";
+import { SpeechToText, TextToSpeech } from "@/components/GoogleCloudSpeech";
 import { Inter } from "next/font/google";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -15,8 +14,6 @@ export default function Home() {
         </div>
         <TextToSpeech />
         <SpeechToText />
-        {/* <p>ex</p>
-        <TextToSpeechDemo /> */}
       </div>
     </main>
   );
